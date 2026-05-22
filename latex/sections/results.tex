@@ -18,7 +18,7 @@ number of volumes exceeding the common 0.5\,mm FD exclusion threshold
 was zero in Dataset~1 and negligible in Dataset~2, so no volumes
 were censored.
 
-\begin{table}[htbp]
+\begin{table}[!htbp]
   \centering
   \caption{Head Motion Quality Control — Both Datasets}
   \label{tab:motion_qc}
@@ -37,7 +37,7 @@ were censored.
   \texttt{table\_cross\_dataset\_summary.csv} by the analysis scripts.}
 \end{table}
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig24_ds1_vs_ds2_motion_qc}
   \caption{Side-by-side head-motion comparison for both datasets.
@@ -59,7 +59,7 @@ spatial pattern of high tSNR follows the distribution of grey matter,
 as expected, since white matter has lower BOLD fluctuations and
 therefore higher SNR relative to signal mean.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig25_ds1_vs_ds2_tsnr_comparison}
   \caption{Temporal SNR comparison between the two datasets after
@@ -71,7 +71,8 @@ therefore higher SNR relative to signal mean.
   \label{fig:comparison:tsnr}
 \end{figure*}
 
-\subsection{GLM Results — Dataset 1 (Motor Task)}
+% -----------------------------------------------------------------------
+\subsection{GLM Results --- Dataset 1 (Motor Task)}
 
 The design matrix for Dataset~1 is shown in
 Fig.~\ref{fig:ds1:design_matrix}. The block structure of the motor
@@ -86,7 +87,7 @@ cortex (central sulcus, lateral surface), with the expected
 left-hemisphere dominance given right-hand movement. A smaller
 cluster was visible in the ipsilateral cerebellum.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig13_ds1_tmap_finger_pos}
   \caption{Thresholded t-map for the Finger$\,{>}\,$Baseline contrast
@@ -103,7 +104,7 @@ The Foot$\,{>}\,$Baseline contrast (Fig.~\ref{fig:ds1:tmap:foot})
 activated the superior medial wall of the motor cortex bilaterally —
 the expected location for lower-limb movements in the homuncular map.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig14_ds1_tmap_foot_pos}
   \caption{Thresholded t-map for Foot$\,{>}\,$Baseline. Activation
@@ -121,7 +122,7 @@ face/lips region of the homunculus. Additional activity was seen in
 the supplementary motor area and in auditory cortex, which may
 reflect the self-monitoring of facial movement.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig15_ds1_tmap_lips_pos}
   \caption{Thresholded t-map for Lips$\,{>}\,$Baseline. The peak
@@ -137,7 +138,7 @@ pools all three conditions and highlights the entire motor strip
 together with the cerebellum and thalamus. This map gives a useful
 overview of the motor system engaged by the task as a whole.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig16_ds1_tmap_allmotor_pos}
   \caption{All-motor omnibus contrast (average of finger, foot, and
@@ -149,7 +150,8 @@ overview of the motor system engaged by the task as a whole.
   \label{fig:ds1:tmap:allmotor}
 \end{figure*}
 
-\subsection{GLM Results — Dataset 2 (Visual Task)}
+% -----------------------------------------------------------------------
+\subsection{GLM Results --- Dataset 2 (Visual Task)}
 
 The experimental timing for Dataset~2 is shown in
 Fig.~\ref{fig:ds2:design_timing} and the resulting design matrix in
@@ -165,7 +167,7 @@ gyrus — the expected location of the fusiform face area (FFA),
 first identified by Kanwisher et al. This replication of a classic
 finding provides a useful sanity check on the pipeline.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig19_ds2_tmap_face_pos}
   \caption{Thresholded t-map for faces$\,{>}\,$Baseline in
@@ -176,7 +178,7 @@ finding provides a useful sanity check on the pipeline.
   \label{fig:ds2:tmap:face}
 \end{figure*}
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig21_ds2_tmap_object_pos}
   \caption{Thresholded t-map for one of the object categories
@@ -188,7 +190,7 @@ finding provides a useful sanity check on the pipeline.
   \label{fig:ds2:tmap:object}
 \end{figure*}
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig22_ds2_tmap_allvisual_pos}
   \caption{All-visual omnibus contrast for Dataset~2 (mean of all
@@ -199,9 +201,10 @@ finding provides a useful sanity check on the pipeline.
   \label{fig:ds2:tmap:allvisual}
 \end{figure*}
 
+% -----------------------------------------------------------------------
 \subsection{Functional Connectivity}
 
-\textbf{Dataset~1 — Motor Network.}
+\textbf{Dataset~1 --- Motor Network.}
 Figure~\ref{fig:ds1:connectivity} shows the connectivity map seeded
 from left M1. Regions correlated with the seed (warm colours,
 $r>0.30$) include bilateral primary motor cortex, the supplementary
@@ -213,7 +216,7 @@ negative correlation (cool colours) include the default mode network
 — an expected anti-correlation, since motor execution typically
 suppresses default-mode activity.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=\columnwidth]{figures/fig21_ds1_connectivity_M1_hand}
   \caption{Seed-based functional connectivity map for Dataset~1.
@@ -224,7 +227,7 @@ suppresses default-mode activity.
   \label{fig:ds1:connectivity}
 \end{figure}
 
-\textbf{Dataset~2 — Visual Network.}
+\textbf{Dataset~2 --- Visual Network.}
 The V1 seed connectivity map (Fig.~\ref{fig:ds2:connectivity}) shows
 strong positive correlations throughout the occipital lobe, extending
 into the ventral and dorsal visual streams. The fusiform gyrus and
@@ -234,7 +237,7 @@ correlations are again found in medial prefrontal and posterior
 cingulate regions — the default mode network — consistent with
 suppression during visual processing.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=\columnwidth]{figures/fig22_ds2_connectivity_V1_calcarine}
   \caption{Seed-based connectivity map for Dataset~2. Seed: primary
@@ -254,7 +257,7 @@ and temporal areas. This double dissociation confirms that the
 connectivity analysis is reflecting genuine functional network
 organisation rather than a generic haemodynamic or noise effect.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig23_ds1_vs_ds2_connectivity_comparison}
   \caption{Side-by-side connectivity maps: Dataset~1 motor network
@@ -265,6 +268,7 @@ organisation rather than a generic haemodynamic or noise effect.
   \label{fig:comparison:connectivity}
 \end{figure*}
 
+% -----------------------------------------------------------------------
 \subsection{Cross-Dataset Activation Comparison}
 
 Figure~\ref{fig:comparison:activation} shows t-maps from the first
@@ -277,7 +281,7 @@ preprocessing and GLM settings on both datasets, gives us confidence
 that the pipeline produces anatomically meaningful results rather than
 spurious, diffuse activations.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{figures/fig26_ds1_vs_ds2_activation_comparison}
   \caption{Cross-dataset activation comparison. Top row: Dataset~1

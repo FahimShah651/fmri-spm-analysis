@@ -27,6 +27,9 @@
 
 \graphicspath{{figures/}}
 
+% Page numbers on every page (IEEEtran default hides them)
+\pagestyle{plain}
+
 % ==========================================================================
 \begin{document}
 
@@ -103,6 +106,8 @@ provides an immediate sanity check against published results.
 \section{Results}
 \label{sec:results}
 \input{sections/results}
+
+\clearpage  % flush all Results figures before Discussion text begins
 
 % ==========================================================================
 \section{Discussion}
