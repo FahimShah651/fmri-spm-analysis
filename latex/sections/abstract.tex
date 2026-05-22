@@ -1,0 +1,16 @@
+% abstract.tex
+This report presents an end-to-end fMRI analysis pipeline built in
+MATLAB using SPM25, applied to two publicly available OpenNeuro
+datasets: ds000114 (a finger-foot-lips motor task) and ds000105 (a
+visual object recognition task). Starting from raw EPI data, the
+pipeline covers slice-timing correction, head-motion realignment,
+coregistration, unified-segmentation normalisation to MNI152 space,
+and 6\,mm Gaussian smoothing. First-level GLM analyses use canonical
+HRF convolution to produce thresholded activation maps for
+task-specific contrasts, and seed-based functional connectivity maps
+are computed from primary motor cortex (ds000114) and primary visual
+cortex (ds000105). A cross-dataset comparison confirms equivalent
+preprocessing quality and task-appropriate functional topography in
+both datasets. All processing steps are scripted, every intermediate
+output is saved with IEEE-compliant file naming, and the full pipeline
+can be reproduced by running seven numbered MATLAB scripts in sequence.

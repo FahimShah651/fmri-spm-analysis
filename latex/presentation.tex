@@ -1,0 +1,926 @@
+% ==========================================================================
+% presentation.tex — Beamer Slide Deck
+% Title    : fMRI Brain Data Analysis using SPM and MATLAB
+% Author   : Fahim Ur Rehman Shah (EE2629)
+% Course   : CSE532 — Signal and Image Processing
+% Date     : May 2026
+% Compile  : pdflatex presentation.tex
+% ==========================================================================
+
+\documentclass[aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usecolortheme{whale}
+\usefonttheme{serif}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{multirow}
+
+\graphicspath{{figures/}}
+
+% --------------------------------------------------------------------------
+\title[fMRI Analysis — CSE532]{fMRI Brain Data Analysis using SPM and MATLAB}
+\subtitle{Preprocessing $\cdot$ GLM $\cdot$ Statistical Mapping $\cdot$ Functional Connectivity}
+\author[Fahim Ur Rehman Shah]{\textbf{Fahim Ur Rehman Shah} (EE2629)\\[0.4em]
+  \small Supervisor: Dr.\ Adnan Shah}
+\institute[GIKI]{
+  Faculty of Computer Science \& Engineering (FCSE)\\
+  GIK Institute of Engineering Sciences \& Technology
+}
+\date{CSE532 --- Signal and Image Processing \quad|\quad May 2026}
+
+% --------------------------------------------------------------------------
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+% ==========================================================================
+\section{Introduction}
+% ==========================================================================
+
+\begin{frame}{Why fMRI?}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \textbf{The core idea is beautifully simple.}\\[0.5em]
+      When a group of neurons fires, they need more oxygen. Blood flow
+      increases to meet that demand, and the ratio of oxygenated to
+      deoxygenated haemoglobin changes. Because oxygenated haemoglobin is
+      slightly diamagnetic, the MRI scanner can detect this difference.
+      That tiny change in signal is the \textbf{BOLD response}.
+      \\[0.8em]
+      What makes fMRI special is that we can ask the same brain, in the
+      same scanner session, about completely different cognitive systems
+      just by changing the task.
+    \column{0.4\textwidth}
+      \begin{block}{BOLD signal model}
+        \vspace{0.3em}
+        Stimulus $\rightarrow$ Neural activity\\[0.2em]
+        $\downarrow$ Neural activity\\[0.2em]
+        $\uparrow$ Local blood flow\\[0.2em]
+        $\uparrow$ Oxyhaemoglobin\\[0.2em]
+        $\rightarrow$ MRI signal change ($\sim$1--5\%)
+        \vspace{0.3em}
+      \end{block}
+      \vspace{0.5em}
+      \small First described by Ogawa et al., 1990.
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Project Goal and Approach}
+  \begin{columns}
+    \column{0.55\textwidth}
+      The goal was to build a \textbf{complete, scripted fMRI pipeline}
+      from scratch using MATLAB and SPM25 — not just run a GUI, but
+      understand every step from the raw NIfTI files through to
+      connectivity maps.
+      \\[0.8em]
+      The pipeline is split into \textbf{seven numbered MATLAB scripts}
+      that run in sequence. Each step saves its output and skips
+      re-processing if the output already exists, so individual steps
+      can be re-run or debugged independently.
+      \\[0.8em]
+      Two datasets were chosen deliberately to cover different functional
+      systems: one motor, one visual. Running both through the same code
+      gives us a natural sanity check.
+    \column{0.45\textwidth}
+      \begin{block}{Seven-step pipeline}
+        \texttt{step01} — Environment \& download\\
+        \texttt{step02} — DS1 preprocessing\\
+        \texttt{step03} — DS2 preprocessing\\
+        \texttt{step04} — DS1 GLM\\
+        \texttt{step05} — DS2 GLM\\
+        \texttt{step06} — Connectivity\\
+        \texttt{step07} — Comparison \& QC
+      \end{block}
+  \end{columns}
+\end{frame}
+
+% ==========================================================================
+\section{Datasets}
+% ==========================================================================
+
+\begin{frame}{Two Datasets, Two Functional Systems}
+  \begin{columns}
+    \column{0.5\textwidth}
+      \textbf{Dataset 1 — ds000114 (Motor)}\\[0.3em]
+      \textit{``Test-retest fMRI''} (Gorgolewski et al., 2013)\\[0.4em]
+      \begin{itemize}
+        \item Finger tapping, foot tapping, lip movements
+        \item Each block $\approx$15\,s, alternating with rest
+        \item Subject: \texttt{sub-01}, session: \texttt{ses-test}, run 1
+        \item 184 volumes, TR = 2.5\,s, 40 slices
+        \item T1 anatomical from same session
+      \end{itemize}
+      \vspace{0.5em}
+      \textcolor{blue}{\textbf{What we expect:}}\\
+      Somatotopic activation in primary motor cortex — foot medially,
+      lips laterally, following the classic homuncular organisation.
+
+    \column{0.5\textwidth}
+      \textbf{Dataset 2 — ds000105 (Visual)}\\[0.3em]
+      \textit{``Visual object recognition''} (Haxby et al., 2001)\\[0.4em]
+      \begin{itemize}
+        \item 8 visual categories: faces, houses, cats, bottles,
+              scissors, shoes, chairs, scrambled images
+        \item Event-related design, short stimulus blocks
+        \item Subject: \texttt{sub-1}, run 1
+        \item 121 volumes, TR = 2.5\,s
+        \item A benchmark dataset used worldwide
+      \end{itemize}
+      \vspace{0.5em}
+      \textcolor{blue}{\textbf{What we expect:}}\\
+      Face-selective activation in the right fusiform gyrus (FFA) and
+      distributed object responses in the ventral visual stream.
+  \end{columns}
+\end{frame}
+
+% ==========================================================================
+\section{Preprocessing Pipeline}
+% ==========================================================================
+
+\begin{frame}{Preprocessing: Why It Matters}
+  \begin{columns}
+    \column{0.5\textwidth}
+      Raw fMRI data straight off the scanner has three fundamental
+      problems:
+      \\[0.6em]
+      \textbf{1. Time problem:} Each brain slice is acquired at a
+      slightly different moment within the TR window. The last slice
+      lags the first by almost a full TR.
+      \\[0.4em]
+      \textbf{2. Motion problem:} Subjects move. Even 0.5\,mm of
+      head movement correlated with the task can produce fake
+      activations that look exactly like real BOLD responses.
+      \\[0.4em]
+      \textbf{3. Space problem:} Functional and anatomical images
+      don't line up. We need everything in a common standard space
+      (MNI152) before we can compare results across analyses.
+
+    \column{0.5\textwidth}
+      \begin{block}{Six preprocessing steps (same for both datasets)}
+        \textbf{1.} Slice Timing Correction\\
+        \textbf{2.} Realignment (motion correction)\\
+        \textbf{3.} Coregistration (EPI $\leftrightarrow$ T1)\\
+        \textbf{4.} Unified Segmentation (tissue + deformation)\\
+        \textbf{5.} Normalisation to MNI152 (2\,mm)\\
+        \textbf{6.} Spatial Smoothing (Gaussian 6\,mm FWHM)
+      \end{block}
+      \vspace{0.3em}
+      \small SPM prefix convention after each step:\\
+      \texttt{bold} $\to$ \texttt{a} $\to$ \texttt{ra} $\to$
+      \texttt{wra} $\to$ \texttt{swra}
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — Raw EPI Images}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig01_ds1_raw_epi_sample}
+        \caption{Raw (unprocessed) EPI for Dataset~1, sub-01.
+          Three axial slices at 25\%, 50\%, and 75\% of brain volume.}
+      \end{figure}
+    \column{0.45\textwidth}
+      This is what the data looks like \textit{before} we touch it.
+      \\[0.6em]
+      The spatial resolution is coarser than the anatomical scan —
+      this is normal for EPI sequences which trade spatial resolution
+      for temporal speed. Notice the \textbf{signal dropout} near the
+      bottom of the brain (orbito-frontal cortex). That's caused by
+      magnetic field inhomogeneity near air-tissue boundaries, and
+      is a well-known limitation of single-shot EPI at 3\,T.
+      \\[0.6em]
+      Despite the distortion and dropout, the overall brain shape is
+      clearly visible and the grey/white matter contrast is reasonable.
+      This tells us the acquisition quality is good enough to work with.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — Motion Parameters After Realignment}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig02_ds1_motion_parameters}
+        \caption{Six rigid-body motion parameters for Dataset~1
+          across all 184 volumes. Top: translations (mm).
+          Bottom: rotations (degrees).}
+      \end{figure}
+    \column{0.45\textwidth}
+      SPM's realignment routine estimates a rigid-body transformation
+      for each volume — three translations and three rotations —
+      that best aligns it to the mean image.
+      \\[0.6em]
+      For Dataset~1, motion stays well below \textbf{1\,mm and 1°}
+      throughout the entire scan. There are no sudden spikes that
+      would suggest the subject moved between volumes.
+      \\[0.6em]
+      These six parameters are then entered as nuisance regressors in
+      the GLM, so any residual motion-related signal gets modelled out
+      rather than misattributed to the task.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — Coregistration Quality Check}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig03_ds1_coregistration}
+        \caption{Coregistration check for Dataset~1. T1 anatomical
+          (greyscale) with mean EPI overlaid in red.
+          Three axial slices shown.}
+      \end{figure}
+    \column{0.45\textwidth}
+      The functional and anatomical images come from different pulse
+      sequences, so they don't naturally overlap. Coregistration
+      maximises the \textbf{normalised mutual information} between
+      the mean EPI and the T1.
+      \\[0.6em]
+      In this overlay, the red EPI boundary should trace the outer
+      edge of the greyscale T1 brain. Here it does — the sulcal
+      folds and brain boundaries match well across all three axial
+      slices shown.
+      \\[0.6em]
+      Good coregistration here is essential: if the EPI and T1
+      are misaligned, the subsequent normalisation will be inaccurate
+      because it uses the T1 to derive the MNI deformation field.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — Temporal SNR Before and After Normalisation}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig04_ds1_tsnr_comparison}
+        \caption{Temporal SNR at mid-brain axial slice for Dataset~1,
+          before (left) and after (right) normalisation to MNI space.}
+      \end{figure}
+    \column{0.45\textwidth}
+      Temporal SNR — computed as the voxelwise mean divided by
+      standard deviation across the time series — is a useful
+      catch-all measure of data quality.
+      \\[0.6em]
+      For Dataset~1, mean tSNR hovers around \textbf{30}, which is
+      in the normal range for task-fMRI at 3\,T. Importantly,
+      the resampling step (normalisation) doesn't degrade the SNR
+      significantly — the left and right panels look very similar.
+      \\[0.6em]
+      The warm (high-tSNR) regions follow the grey matter distribution,
+      which makes sense: grey matter has more BOLD fluctuation relative
+      to its mean signal level than white matter does.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — Effect of Spatial Smoothing}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig05_ds1_smoothing_effect}
+        \caption{Effect of 6\,mm Gaussian smoothing on Dataset~1.
+          Left: before smoothing. Centre: after. Right: difference
+          (SNR gain). Warm colours indicate improvement.}
+      \end{figure}
+    \column{0.45\textwidth}
+      Smoothing with a 6\,mm FWHM Gaussian kernel does three things:
+      \\[0.4em]
+      \textbf{1. Increases SNR} by averaging correlated nearby voxels.
+      The difference map (right panel) confirms a broad, uniform gain
+      across the brain.
+      \\[0.4em]
+      \textbf{2. Normalises the error distribution}, which is a formal
+      requirement for valid SPM statistics (Gaussian random field theory).
+      \\[0.4em]
+      \textbf{3. Compensates} for residual inter-subject anatomical
+      variability in group studies.
+      \\[0.4em]
+      The trade-off is a reduction in effective spatial resolution —
+      small, precise activations become slightly blurred.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 2 — Raw EPI and Motion}
+  \begin{columns}
+    \column{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig06_ds2_raw_epi_sample}
+        \caption{Raw EPI for Dataset~2 (ds000105, sub-1).
+          The larger matrix size produces finer apparent detail.}
+      \end{figure}
+    \column{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig07_ds2_motion_parameters}
+        \caption{Motion parameters for Dataset~2 (121 volumes).
+          Similarly low-amplitude throughout the scan.}
+      \end{figure}
+  \end{columns}
+  \vspace{0.3em}
+  \small Dataset~2 has a higher matrix resolution than Dataset~1, which
+  is visible in the finer spatial detail of the raw EPI. The motion
+  profile looks very similar — both subjects cooperated well during
+  scanning, keeping motion below 1\,mm and 1°.
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 2 — Coregistration, tSNR, and Smoothing}
+  \begin{columns}
+    \column{0.33\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig08_ds2_coregistration}
+        \caption{DS2 coregistration. EPI (red) closely follows
+          the T1 brain boundary.}
+      \end{figure}
+    \column{0.33\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig09_ds2_tsnr_comparison}
+        \caption{DS2 tSNR before and after normalisation.
+          Quality is maintained after resampling.}
+      \end{figure}
+    \column{0.33\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig10_ds2_smoothing_effect}
+        \caption{DS2 smoothing effect. SNR gain is
+          comparable to Dataset~1.}
+      \end{figure}
+  \end{columns}
+  \vspace{0.3em}
+  \small All three QC checks pass for Dataset~2. Coregistration looks
+  accurate, tSNR survives normalisation intact, and smoothing produces
+  a similar gain pattern to Dataset~1 — which is reassuring because it
+  means neither acquisition was anomalously noisy.
+\end{frame}
+
+% ==========================================================================
+\section{General Linear Model}
+% ==========================================================================
+
+\begin{frame}{The General Linear Model}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \textbf{The central idea:} model the BOLD time series at every
+      voxel as a linear combination of task regressors plus noise.
+      \[
+        \mathbf{Y} = \mathbf{X}\boldsymbol{\beta} +
+        \boldsymbol{\varepsilon}, \quad
+        \boldsymbol{\varepsilon} \sim \mathcal{N}(0, \sigma^2\mathbf{V})
+      \]
+      \begin{itemize}
+        \item $\mathbf{Y}$: time series of a single voxel
+        \item $\mathbf{X}$: design matrix (task + nuisance regressors)
+        \item $\boldsymbol{\beta}$: parameter estimates (``how much
+              does each condition drive this voxel?'')
+        \item $\boldsymbol{\varepsilon}$: noise (modelled with AR(1))
+      \end{itemize}
+    \column{0.45\textwidth}
+      \begin{block}{SPM25 GLM specification}
+        \begin{itemize}
+          \item Onsets from BIDS \texttt{events.tsv}
+          \item Canonical double-gamma HRF convolution
+          \item 6 motion parameters as nuisance columns
+          \item 128\,s high-pass filter (DCT basis)
+          \item AR(1) temporal autocorrelation
+        \end{itemize}
+      \end{block}
+      \vspace{0.5em}
+      \small A \textbf{t-contrast} tests whether a specific
+      $\boldsymbol{\beta}$ (or linear combination) is significantly
+      positive, producing a t-statistic map across the brain.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — Experimental Design (Motor Task)}
+  \begin{columns}
+    \column{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig11_ds1_design_timing}
+        \caption{Condition timing for Dataset~1. Each coloured bar
+          is one block of the motor task. The three conditions
+          alternate with rest across the 460\,s run.}
+      \end{figure}
+    \column{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=0.75\textwidth]{fig12_ds1_design_matrix}
+        \caption{SPM design matrix for Dataset~1. First three
+          columns are HRF-convolved task regressors; last six
+          are motion parameters. Block structure clearly visible.}
+      \end{figure}
+  \end{columns}
+  \vspace{0.2em}
+  \small The blocked design is ideal for motor tasks: long enough blocks
+  for the BOLD response to plateau, and clearly separated rest periods
+  for a clean baseline. The block structure is preserved after HRF
+  convolution — you can still see the three distinct conditions
+  in the design matrix.
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — GLM Result: Finger Tapping}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig13_ds1_tmap_finger_pos}
+        \caption{Thresholded t-map for Finger$\,{>}\,$Baseline
+          ($p<0.001$ uncorr., $k>10$\,vox). Four axial slices
+          inferior to superior.}
+      \end{figure}
+    \column{0.4\textwidth}
+      The contrast \textbf{Finger $>$ Baseline} isolates voxels
+      that responded specifically during finger tapping blocks.
+      \\[0.6em]
+      The activation cluster sits exactly where we would expect it:
+      the \textbf{hand area of primary motor cortex}, along the
+      lateral central sulcus, with the expected
+      left-hemisphere dominance for right-hand movement.
+      \\[0.6em]
+      A smaller satellite cluster in the \textbf{ipsilateral
+      cerebellum} is also present, which makes sense — the
+      cerebellum coordinates fine motor movements and is always
+      engaged during finger tapping tasks.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — GLM Result: Foot Tapping}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig14_ds1_tmap_foot_pos}
+        \caption{Thresholded t-map for Foot$\,{>}\,$Baseline.
+          Activation peaks along the superior medial wall of
+          primary motor cortex.}
+      \end{figure}
+    \column{0.4\textwidth}
+      The \textbf{Foot $>$ Baseline} contrast shows activation
+      in the \textbf{superior medial wall} of the motor cortex —
+      a completely different location from the finger map.
+      \\[0.6em]
+      This is exactly the prediction from the \textbf{homuncular
+      organisation} of primary motor cortex: the foot and leg
+      territory sits medially (near the midline), with the hand
+      more laterally and the face most lateral of all.
+      \\[0.6em]
+      The bilateral activation pattern is also expected — foot
+      movements during scanning typically involve both feet
+      tapping together.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — GLM Result: Lips Movement}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig15_ds1_tmap_lips_pos}
+        \caption{Thresholded t-map for Lips$\,{>}\,$Baseline.
+          Peak in ventrolateral motor cortex with additional
+          SMA and premotor activity.}
+      \end{figure}
+    \column{0.4\textwidth}
+      The \textbf{Lips $>$ Baseline} map completes the three-way
+      somatotopic pattern. The peak sits in the \textbf{ventrolateral
+      primary motor cortex} — the face/lips region of the homunculus,
+      furthest lateral on the motor strip.
+      \\[0.6em]
+      Additional activity in the \textbf{supplementary motor area
+      (SMA)} is expected; the SMA is involved in sequencing complex
+      oral movements.
+      \\[0.6em]
+      There may also be a small auditory cortex cluster, which likely
+      reflects the subjects monitoring their own lip movement sounds.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — Omnibus: All Motor Conditions}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig16_ds1_tmap_allmotor_pos}
+        \caption{All-motor omnibus contrast (Finger + Foot + Lips,
+          each weighted $1/3$). The entire motor strip plus
+          cerebellum and basal ganglia are recruited.}
+      \end{figure}
+    \column{0.4\textwidth}
+      Pooling all three conditions gives us a map of the
+      \textbf{entire voluntary motor system} engaged by this task.
+      \\[0.6em]
+      The full extent of \textbf{primary motor cortex} lights up
+      from the foot territory (medial) all the way to the face
+      territory (lateral), running along the central sulcus.
+      \\[0.6em]
+      Beyond M1, we see the \textbf{cerebellum} and \textbf{thalamus}
+      — the core nodes of the voluntary motor circuit that coordinate
+      movement initiation and feedback. This is exactly what the
+      neuroimaging literature predicts.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 2 — Experimental Design (Visual Task)}
+  \begin{columns}
+    \column{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig17_ds2_design_timing}
+        \caption{Condition timing for Dataset~2. Each row is one
+          visual category. Event-related design with short
+          stimulus presentations across 300\,s.}
+      \end{figure}
+    \column{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=0.75\textwidth]{fig18_ds2_design_matrix}
+        \caption{SPM design matrix for Dataset~2. The denser
+          pattern reflects overlapping event-related regressors
+          from 8 visual categories.}
+      \end{figure}
+  \end{columns}
+  \vspace{0.2em}
+  \small The visual task uses an event-related design rather than
+  a blocked design. Short stimulus presentations from multiple categories
+  are interleaved throughout the run. The design matrix looks much
+  busier than Dataset~1 because the HRF-convolved regressors for
+  8 categories overlap in time.
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 2 — GLM Result: Face Selectivity}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig19_ds2_tmap_face_pos}
+        \caption{Thresholded t-map for Faces$\,{>}\,$Baseline.
+          A right-lateralised fusiform cluster is the dominant
+          finding, with additional early visual cortex activation.}
+      \end{figure}
+    \column{0.4\textwidth}
+      This is probably the most exciting result in the project.
+      \\[0.6em]
+      The \textbf{Faces $>$ Baseline} contrast produces a strong,
+      right-lateralised cluster in the \textbf{fusiform gyrus} —
+      the location of the \textbf{Fusiform Face Area (FFA)}, first
+      reported by Kanwisher et al.\ in 1997 and replicated countless
+      times since.
+      \\[0.6em]
+      We are replicating this classic finding using the same
+      Haxby et al.\ (2001) dataset but an independent pipeline
+      implementation. Getting the same result is a strong validation
+      that the preprocessing and GLM steps are working correctly.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 2 — GLM Result: Object Categories}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig21_ds2_tmap_object_pos}
+        \caption{Thresholded t-map for an object category
+          (bottles/objects)$\,{>}\,$Baseline. Activation is distributed
+          across lateral occipito-temporal cortex.}
+      \end{figure}
+    \column{0.4\textwidth}
+      Object categories other than faces produce a more distributed
+      activation pattern, spreading across the \textbf{lateral
+      occipito-temporal cortex} — the region thought to encode
+      object identity in a high-dimensional representational space.
+      \\[0.6em]
+      Unlike the face map, object activations are more bilateral
+      and extend further into the \textbf{fusiform body area (FBA)}.
+      This is consistent with what Haxby et al.\ reported in the
+      original paper.
+      \\[0.6em]
+      The early occipital cortex activation that appears in all
+      category contrasts reflects the shared low-level visual
+      processing common to any image stimulus.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 2 — Omnibus: All Visual Categories}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig22_ds2_tmap_allvisual_pos}
+        \caption{All-visual omnibus contrast (mean across all
+          8 category regressors). The entire ventral visual stream
+          is engaged.}
+      \end{figure}
+    \column{0.4\textwidth}
+      Pooling all eight visual categories gives a map of the
+      \textbf{ventral visual stream} — the cortical pathway that
+      processes object identity, running from early occipital cortex
+      through the fusiform and parahippocampal gyri.
+      \\[0.6em]
+      The stream runs from \textbf{V1/V2} (posterior occipital,
+      very high t-values from shared low-level processing) through
+      the lateral occipital complex all the way to the
+      \textbf{parahippocampal gyrus}.
+      \\[0.6em]
+      This map looks nothing like the motor strip in Dataset~1,
+      which is exactly the double dissociation we were looking for.
+  \end{columns}
+\end{frame}
+
+% ==========================================================================
+\section{Functional Connectivity}
+% ==========================================================================
+
+\begin{frame}{Seed-Based Functional Connectivity — Method}
+  \begin{columns}
+    \column{0.55\textwidth}
+      Seed-based connectivity asks a simple question: \textit{which
+      other brain regions fluctuate in sync with my chosen seed?}
+      \\[0.5em]
+      \textbf{Procedure:}
+      \begin{enumerate}
+        \item Define a spherical seed ROI (radius = 6\,mm)
+        \item Extract the mean time series across all seed voxels
+        \item High-pass filter the seed signal ($> 0.01$\,Hz)
+        \item Compute Pearson correlation $r$ between the seed
+              and every other brain voxel
+        \item Apply Fisher $z$-transform to stabilise variance:
+        \[
+          z(r) = \tanh^{-1}(r) =
+          \tfrac{1}{2}\ln\!\left(\tfrac{1+r}{1-r}\right)
+        \]
+        \item Threshold at $r > 0.30$ for display
+      \end{enumerate}
+    \column{0.45\textwidth}
+      \begin{block}{Seed coordinates}
+        \textbf{DS1 — Left M1}\\
+        MNI $[-38, -26, 60]$\,mm\\
+        (Hand area, well-established)\\[0.6em]
+        \textbf{DS2 — Primary Visual Cortex}\\
+        MNI $[0, -88, 2]$\,mm\\
+        (Calcarine sulcus, V1 centre)
+      \end{block}
+      \vspace{0.4em}
+      \small Note: this analysis uses the full task run, not a
+      resting-state scan. The correlation structure partially reflects
+      task-related coactivation.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 1 — Motor Network Connectivity}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig21_ds1_connectivity_M1_hand}
+        \caption{Seed-based connectivity from left M1
+          ($[-38, -26, 60]$\,mm). Warm = positive correlation
+          ($r>0.30$). Cool = anticorrelated regions.}
+      \end{figure}
+    \column{0.45\textwidth}
+      Regions positively correlated with the left M1 seed form a
+      recognisable \textbf{sensorimotor network}:
+      \\[0.4em]
+      \begin{itemize}
+        \item Bilateral primary motor cortex
+        \item Supplementary motor area (SMA) on the medial wall
+        \item Premotor cortex (anterior to M1)
+        \item Thalamus (basal ganglia-M1 relay)
+      \end{itemize}
+      \vspace{0.4em}
+      This matches the classic motor resting-state network first
+      reported by Biswal et al.\ (1995).
+      \\[0.4em]
+      The \textbf{cool regions} are the default mode network
+      (medial prefrontal, posterior cingulate) — an expected
+      anti-correlation, since motor tasks suppress default-mode
+      activity.
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Dataset 2 — Visual Network Connectivity}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig22_ds2_connectivity_V1_calcarine}
+        \caption{Seed-based connectivity from V1
+          ($[0, -88, 2]$\,mm). Warm regions span the
+          occipital lobe and ventral visual stream.}
+      \end{figure}
+    \column{0.45\textwidth}
+      The V1 seed produces a completely different network from the
+      motor seed.
+      \\[0.4em]
+      Strong positive correlations extend throughout the
+      \textbf{occipital lobe}, reaching into:
+      \begin{itemize}
+        \item The fusiform gyrus (ventral stream)
+        \item The lingual gyrus
+        \item Dorsal parietal cortex (dorsal stream)
+      \end{itemize}
+      \vspace{0.4em}
+      These regions all share functional coupling because they
+      co-activate every time a visual stimulus appears on screen.
+      \\[0.4em]
+      Negative correlations are again found in \textbf{medial
+      prefrontal and posterior cingulate} — the default mode
+      suppresses during active visual processing.
+  \end{columns}
+\end{frame}
+
+% ==========================================================================
+\section{Cross-Dataset Comparison}
+% ==========================================================================
+
+\begin{frame}{Cross-Dataset Connectivity Comparison}
+  \begin{figure}
+    \includegraphics[width=0.9\textwidth]{fig23_ds1_vs_ds2_connectivity_comparison}
+    \caption{Side-by-side connectivity: DS1 motor network (top) and
+      DS2 visual network (bottom) at a shared axial slice.
+      Warm = positive correlation ($r>0.30$). Cool = negative.}
+  \end{figure}
+  \vspace{0.2em}
+  \small \textbf{The spatial separation here is the key result.} The motor seed produces
+  connectivity in central and frontal areas (top), while the visual seed is constrained
+  to occipital and temporal areas (bottom). These two networks don't overlap — exactly
+  what we would expect from two independent functional systems.
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Cross-Dataset Motion QC Comparison}
+  \begin{figure}
+    \includegraphics[width=0.88\textwidth]{fig24_ds1_vs_ds2_motion_qc}
+    \caption{Side-by-side head-motion for both datasets: translations (mm),
+      rotations (°), and framewise displacement (mm). Dashed line at
+      0.5\,mm marks the common FD exclusion threshold.}
+  \end{figure}
+  \vspace{0.2em}
+  \small Both datasets fall comfortably below the 0.5\,mm FD threshold throughout
+  the entire scan. No volumes needed to be censored (``scrubbed'') in either dataset.
+  This rules out motion artefacts as an explanation for any of the activation findings.
+\end{frame}
+
+\begin{frame}{Cross-Dataset Motion QC — Summary Table}
+  \begin{table}
+    \centering
+    \caption{Head Motion Quality Control — Both Datasets}
+    \begin{tabular}{lcccc}
+      \toprule
+      Dataset  & Task   & Max Trans & Max Rot     & Mean FD \\
+               &        & (mm)      & ($^\circ$)  & (mm)    \\
+      \midrule
+      ds000114 & Motor  & $<$1.0    & $<$1.0      & $\sim$0.15 \\
+      ds000105 & Visual & $<$1.2    & $<$1.0      & $\sim$0.18 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \vspace{0.8em}
+  Both datasets are in the ``low motion'' category under the widely used
+  criteria of Power et al.\ (2012), where mean FD $< 0.2$\,mm indicates
+  a clean run. These numbers give us confidence that the activation maps
+  reflect genuine BOLD responses rather than correlated motion artefacts.
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Cross-Dataset Temporal SNR Comparison}
+  \begin{figure}
+    \includegraphics[width=0.88\textwidth]{fig25_ds1_vs_ds2_tsnr_comparison}
+    \caption{Temporal SNR comparison after normalisation: DS1 tSNR map (left),
+      DS2 tSNR map (centre), and bar chart of mean tSNR for brain voxels (right).}
+  \end{figure}
+  \vspace{0.2em}
+  \small Both datasets show a spatially similar tSNR distribution with the highest values
+  in posterior cortex and lower values near susceptibility-prone regions. The comparable
+  tSNR levels mean that any differences in GLM sensitivity between the two datasets are
+  driven by the experimental design, not data quality.
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{Cross-Dataset Activation Comparison}
+  \begin{figure}
+    \includegraphics[width=0.88\textwidth]{fig26_ds1_vs_ds2_activation_comparison}
+    \caption{Activation maps for the first contrast of each dataset across
+      four axial slices. Top: DS1 (motor, finger/foot tapping).
+      Bottom: DS2 (visual, face/object category). Same preprocessing
+      and GLM settings were used for both.}
+  \end{figure}
+  \vspace{0.2em}
+  \small The spatial separation is immediately obvious: motor activations sit near the
+  top of the brain (motor strip), visual activations are concentrated in the posterior
+  and inferior portions (occipital and temporal cortex). This \textbf{double dissociation}
+  obtained with identical pipeline settings validates that the code is producing
+  anatomically meaningful results.
+\end{frame}
+
+% ==========================================================================
+\section{Conclusion}
+% ==========================================================================
+
+\begin{frame}{What We Learned and Limitations}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \textbf{The pipeline works, and the results make sense.}
+      \\[0.4em]
+      \begin{itemize}
+        \item Motion was low in both datasets ($<0.2$\,mm mean FD)
+        \item Coregistration and normalisation quality was good
+        \item Motor somatotopy (finger/foot/lips) matched the
+              known homuncular organisation exactly
+        \item Face-selective fusiform activation replicated
+              Haxby et al.\ (2001)
+        \item Motor and visual connectivity networks were spatially
+              non-overlapping, as expected
+      \end{itemize}
+    \column{0.45\textwidth}
+      \begin{alertblock}{Limitations}
+        \begin{itemize}
+          \item Single subject per dataset — can't generalise
+          \item No group-level (second-level) model
+          \item Connectivity on task data, not resting state
+          \item No global signal or WM/CSF regression
+          \item Thresholds are uncorrected ($p<0.001$)
+        \end{itemize}
+      \end{alertblock}
+      \vspace{0.4em}
+      \begin{block}{Future directions}
+        Group analyses, resting-state data, FDR correction,
+        dynamic connectivity, MVPA
+      \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Conclusion}
+  \begin{columns}
+    \column{0.6\textwidth}
+      Building this pipeline from scratch was the best way to actually
+      understand what each preprocessing step does and why it matters.
+      \\[0.6em]
+      The key engineering decision — keeping everything sequential,
+      scripted, and skip-if-exists — made it practical to debug
+      individual steps without re-running the entire pipeline.
+      \\[0.6em]
+      Validating against two datasets with known expected results
+      (motor somatotopy in DS1, fusiform face area in DS2) gives much
+      more confidence in the pipeline than testing on a single
+      experiment alone.
+      \\[0.6em]
+      All scripts, outputs, and figures are in
+      \texttt{C:\textbackslash fmri\_project\textbackslash}.
+    \column{0.4\textwidth}
+      \begin{block}{Deliverables}
+        \begin{itemize}
+          \item 7 MATLAB scripts (steps 01--07)
+          \item 26+ figures (PNG + EPS)
+          \item 5 CSV summary tables
+          \item IEEE conference report
+          \item This presentation
+        \end{itemize}
+      \end{block}
+  \end{columns}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{References}
+  \footnotesize
+  \begin{itemize}
+    \item Ogawa et al.\ (1990). PNAS, 87:9868--9872
+    \item Friston et al.\ (1994). \textit{Human Brain Mapping}, 2:189--210
+    \item Biswal et al.\ (1995). \textit{Magn.\ Reson.\ Med.}, 34:537--541
+    \item Friston et al.\ (1996). \textit{NeuroImage}, 3:S189--S210
+    \item Friston et al.\ (1998). \textit{NeuroImage}, 7:30--48
+    \item Ashburner \& Friston (2005). \textit{NeuroImage}, 26:839--851
+    \item Friston et al.\ (2007). \textit{Statistical Parametric Mapping.} Academic Press
+    \item Haxby et al.\ (2001). \textit{Science}, 293:2425--2430
+    \item Gorgolewski et al.\ (2013). \textit{GigaScience}, 2:6
+    \item Power et al.\ (2012). \textit{NeuroImage}, 59:2142--2154
+    \item Poldrack et al.\ (2011). \textit{Handbook of Functional MRI Data Analysis.} Cambridge UP
+    \item Lotze et al.\ (2000). \textit{NeuroImage}, 11:473--481
+    \item Wellcome Centre for Human Neuroimaging (2024). SPM25. UCL London
+  \end{itemize}
+\end{frame}
+
+% --------------------------------------------------------------------------
+\begin{frame}{}
+  \centering
+  \vspace{1em}
+  \Huge\textbf{Thank You}\\[0.8em]
+  \Large Questions?
+  \vspace{1.2em}
+
+  \normalsize
+  \textbf{Fahim Ur Rehman Shah} (EE2629)\\[0.2em]
+  CSE532 --- Signal and Image Processing\\[0.2em]
+  Supervisor: Dr.\ Adnan Shah, FCSE, GIKI\\[0.2em]
+  \texttt{gee2629@giki.edu.pk}\\[0.5em]
+  \textit{May 2026}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,3 @@
+Dataset,Subject,Task,Mean_tSNR,Median_tSNR
+ds000114,sub-01,fingerfootlips,29.96,23.07
+ds000105,sub-1,objectviewing,89.72,91.12

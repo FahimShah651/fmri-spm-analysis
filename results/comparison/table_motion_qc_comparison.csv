@@ -1,0 +1,3 @@
+Dataset,Subject,Task,N_Volumes,TR_s,Max_Trans_mm,Max_Rot_deg,Mean_FD_mm,N_HiMotion_vols
+ds000114,sub-01,fingerfootlips,184,2.5,1.944,3.710,0.297,15
+ds000105,sub-1,objectviewing,121,2.5,0.094,0.377,0.148,0

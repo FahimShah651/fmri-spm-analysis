@@ -1,0 +1,53 @@
+% introduction.tex
+Functional MRI has become the workhorse of cognitive and systems
+neuroscience over the past three decades. By detecting small changes
+in blood oxygenation that accompany neural activity — the BOLD
+(blood-oxygen-level-dependent) signal first described by Ogawa
+et~al.~\cite{Ogawa1990} — fMRI lets us map which brain regions are
+doing what, without any surgical intervention. What makes it
+particularly useful is that the same scanner, with the same subject,
+can probe entirely different cognitive systems simply by changing the
+task.
+
+However, raw fMRI data are messy. Every subject moves during the
+scan. Slices of the brain are acquired at slightly different moments
+in time. The functional and structural images are not naturally
+aligned. Before any neuroscience can be done, the data need to go
+through a preprocessing pipeline that corrects for these
+acquisition-related artefacts and transforms all images into a common
+reference space. Only after preprocessing can we ask statistical
+questions about which regions activate in response to a given
+stimulus~\cite{Poldrack2011}.
+
+The standard tool for fMRI analysis in the neuroimaging community is
+SPM (Statistical Parametric Mapping), developed at University College
+London. SPM frames the whole problem as a general linear model
+(GLM): each time series is regressed against a design matrix built
+from the experimental conditions, convolved with a model of the
+haemodynamic response~\cite{Friston1994}. The resulting parameter
+estimates yield contrast images and t-statistics that localise
+task-related activations. Beyond task-based analyses, the same
+preprocessed data can be used to compute seed-based functional
+connectivity — correlating the time series of a chosen reference
+region against the rest of the brain~\cite{Biswal1995}.
+
+This project implements the full pipeline — from raw NIfTI download
+through preprocessing, GLM, and connectivity — as a set of seven
+self-contained, sequentially runnable MATLAB scripts. Two datasets
+from the OpenNeuro repository were chosen deliberately to cover
+different functional systems: ds000114 targets the motor cortex
+through a finger/foot/lips tapping task~\cite{Gorgolewski2013}, and
+ds000105 targets the ventral visual stream through a
+multi-category object-viewing experiment~\cite{Haxby2001}. Running
+both datasets through the same pipeline allows us to validate
+that the code produces anatomically sensible results for distinct
+functional domains and to compare data quality metrics across the
+two acquisitions.
+
+The rest of this report is organised as follows. Section~II describes
+the two datasets and their experimental designs. Section~III
+(Methods) walks through every processing step with the parameters
+used. Section~IV (Results) presents quality-control figures,
+activation maps, and connectivity maps for both datasets together
+with a cross-dataset comparison. Section~V discusses what the results
+mean, and Section~VI concludes.

@@ -1,0 +1,43 @@
+﻿# ---- Large neuroimaging data files (do NOT commit raw data) ----
+data/
+*.nii
+*.nii.gz
+*.img
+*.hdr
+*.mat
+*.spm
+
+# ---- SPM output folders (very large) ----
+results/ds1/
+results/ds2/
+results/connectivity/
+
+# ---- MATLAB temp / compiled ----
+*.asv
+*.mex*
+*.mlapp
+*.slx
+*.autosave
+
+# ---- OS clutter ----
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# ---- Overleaf ZIP (regenerate from source) ----
+overleaf_upload.zip
+overleaf_upload/
+
+# ---- LaTeX build artefacts ----
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.snm
+*.nav
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.pdf

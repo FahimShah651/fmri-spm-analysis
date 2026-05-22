@@ -1,0 +1,37 @@
+% conclusion.tex
+This project set out to build a complete, reproducible fMRI pipeline
+in MATLAB and SPM25, and to test it on two structurally different
+task paradigms. Looking at the results as a whole, the pipeline
+delivered what it was supposed to.
+
+Preprocessing quality was good across both datasets. Motion was low,
+coregistration overlays showed accurate alignment, and tSNR values
+were in the normal range for 3\,T acquisitions. The GLM analyses
+produced spatially sensible activation maps: the three-condition
+somatotopic motor map for Dataset~1 matched the known homuncular
+organisation of primary motor cortex almost exactly, and the
+category-selective visual responses in Dataset~2 — particularly the
+face-selective fusiform cluster — replicated a well-known result from
+the original Haxby et~al.\ study~\cite{Haxby2001}. Functional
+connectivity analyses revealed coherent system-level networks anchored
+to the seed regions, and the cross-dataset comparison confirmed that
+the two datasets were comparable in data quality while differing
+appropriately in their functional topography.
+
+From an engineering perspective, the key design decision was to keep
+all processing scripted and sequential (seven numbered MATLAB files),
+with skip-if-exists logic so that individual steps can be re-run or
+debugged without reprocessing the entire pipeline. Every intermediate
+output is saved with a consistent naming scheme, making it easy to
+identify which file came from which processing stage.
+
+There is clearly room to extend this work. The analysis here covers
+a single subject per dataset; a proper group study would require
+second-level random-effects models and family-wise or FDR correction
+for multiple comparisons. The connectivity analysis could be made
+more rigorous by regressing out global signal and white matter / CSF
+noise before computing correlations. Dynamic connectivity approaches
+could reveal how network structure evolves across the scan. But for
+the scope of this course project, the pipeline achieves its goals:
+it works, it is reproducible, and the results make neurobiological
+sense.

@@ -1,0 +1,17 @@
+Metric,Dataset1_ds000114,Dataset2_ds000105
+Subject,sub-01,sub-1
+Task,Finger-Foot-Lips Motor,Visual Object Recognition
+TR_s,2.5,2.5
+Num_Slices,40,40
+Num_Volumes,184,121
+Max_Translation_mm,1.944,0.094
+Max_Rotation_deg,3.710,0.377
+Mean_FD_mm,0.297,0.148
+HiMotion_Vols_over_0p5mm,15,0
+Mean_tSNR,29.96,89.72
+Seed_DS1,M1_hand_[-38-26_60],N/A
+Seed_DS2,N/A,V1_calcarine_[0-88_2]
+Preprocessing_Pipeline,ST+Realign+Coreg+Seg+Norm+Smooth_6mm,ST+Realign+Coreg+Seg+Norm+Smooth_6mm
+GLM_HRF,Canonical_HRF,Canonical_HRF
+GLM_HPF_s,128,128
+GLM_Threshold,p<0.001_uncorr_k>10,p<0.001_uncorr_k>10

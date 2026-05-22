@@ -1,0 +1,151 @@
+========================================================
+STEP 01: Setup and Data Verification
+Date/Time: 22-May-2026 14:01:12
+MATLAB    : 24.2 ((R2024b))
+SPM       : SPM25
+Dataset 1 : PASS
+Dataset 2 : PASS
+Git       : initialized at github/
+STATUS    : PASS
+========================================================
+
+========================================================
+STEP 01: Setup and Data Verification
+Date/Time: 22-May-2026 14:03:38
+MATLAB    : 24.2 ((R2024b))
+SPM       : SPM25
+Dataset 1 : PASS
+Dataset 2 : PASS
+Git       : initialized at github/
+STATUS    : PASS
+========================================================
+
+========================================================
+STEP 01: Setup and Data Verification
+Date/Time: 22-May-2026 14:04:51
+MATLAB    : 24.2 ((R2024b))
+SPM       : SPM25
+Dataset 1 : PASS
+Dataset 2 : PASS
+Git       : initialized at github/
+STATUS    : PASS
+========================================================
+
+========================================================
+STEP 01: Setup and Data Verification
+Date/Time: 22-May-2026 14:08:58
+MATLAB    : 24.2 ((R2024b))
+SPM       : SPM25
+Dataset 1 : MISSING FILES
+Dataset 2 : MISSING FILES
+Git       : initialized at github/
+STATUS    : WARNING
+========================================================
+
+========================================================
+STEP 01: Setup and Data Verification
+Date/Time: 22-May-2026 14:16:33
+MATLAB    : 24.2 ((R2024b))
+SPM       : SPM25
+Dataset 1 : MISSING FILES
+Dataset 2 : MISSING FILES
+STATUS    : WARNING
+========================================================
+
+========================================================
+STEP 01: Setup and Data Verification
+Date/Time: 22-May-2026 14:30:25
+MATLAB    : 24.2 ((R2024b))
+SPM       : SPM25
+Dataset 1 : MISSING FILES
+Dataset 2 : MISSING FILES
+STATUS    : WARNING
+========================================================
+
+========================================================
+STEP 01: Setup and Data Verification
+Date/Time: 22-May-2026 14:32:12
+MATLAB    : 24.2 ((R2024b))
+SPM       : SPM25
+Dataset 1 : MISSING FILES
+Dataset 2 : MISSING FILES
+STATUS    : WARNING
+========================================================
+
+========================================================
+STEP 01: Setup and Data Verification
+Date/Time: 22-May-2026 14:34:09
+MATLAB    : 24.2 ((R2024b))
+SPM       : SPM25
+Dataset 1 : PASS
+Dataset 2 : PASS
+STATUS    : PASS
+========================================================
+
+========================================================
+STEP 02 : Dataset 1 Preprocessing
+Date    : 22-May-2026 15:52:05
+Dataset : ds000114 | Subject: sub-01
+TR      : 2.50 s | Slices: 40 | Volumes: 184
+Output  : C:\fmri_project\data\ds000114\func\swrasub-01_ses-test_task-fingerfootlips_run-1_bold.nii
+Motion  : max=1.94 mm, max=3.71 deg, meanFD=0.30
+STATUS  : PASS
+========================================================
+
+========================================================
+STEP 03 : Dataset 2 Preprocessing
+Date    : 22-May-2026 17:32:11
+Dataset : ds000105 | Subject: sub-1
+TR      : 2.50 s | Slices: 64 | Volumes: 121
+Output  : C:\fmri_project\data\ds000105\func\swrasub-1_task-objectviewing_run-1_bold.nii
+Motion  : max=0.09 mm, max=0.38 deg, meanFD=0.15
+STATUS  : PASS
+========================================================
+
+========================================================
+STEP 04 : Dataset 1 GLM
+Date    : 22-May-2026 17:38:57
+Dataset : ds000114 | Subject: sub-01
+Contrasts: 5 | T-maps: 4
+Threshold: p<0.0010 uncorr, k>10 vox
+STATUS  : PASS
+========================================================
+
+========================================================
+STEP 05 : Dataset 2 GLM
+Date    : 22-May-2026 17:39:34
+Dataset : ds000105 | Subject: sub-1
+Contrasts: 5 | T-maps: 4
+STATUS  : PASS
+========================================================
+
+STEP 06 [DS1]: ds000114 | seed=M1_hand | nvox=123 | time=22-May-2026 17:41:25
+STEP 06 [DS2]: ds000105 | seed=V1_calcarine | nvox=123 | time=22-May-2026 17:41:31
+========================================================
+STEP 06 : Functional Connectivity
+Date    : 22-May-2026 17:41:33
+DS1 seed: M1_hand at MNI [-38,-26,60]
+DS2 seed: V1_calcarine at MNI [0,-88,2]
+STATUS  : PASS
+========================================================
+
+========================================================
+STEP 03 : Dataset 2 Preprocessing
+Date    : 22-May-2026 17:46:43
+Dataset : ds000105 | Subject: sub-1
+TR      : 2.50 s | Slices: 64 | Volumes: 121
+Output  : C:\fmri_project\data\ds000105\func\swrasub-1_task-objectviewing_run-1_bold.nii
+Motion  : max=0.09 mm, max=0.38 deg, meanFD=0.15
+STATUS  : PASS
+========================================================
+
+========================================================
+STEP 07 : Cross-Dataset Comparison Analysis
+Date    : 22-May-2026 17:47:05
+DS1 motion: max=1.94mm, 3.71deg, meanFD=0.30
+DS2 motion: max=0.09mm, 0.38deg, meanFD=0.15
+DS1 tSNR  : 30.0
+DS2 tSNR  : 89.7
+STATUS  : PASS
+========================================================
+
