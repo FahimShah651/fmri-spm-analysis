@@ -1,71 +1,101 @@
 % ==========================================================================
-% main.tex  —  IEEE Two-Column Conference Format
-% Title     : fMRI Brain Data Analysis using SPM and MATLAB:
-%              Preprocessing, GLM, Statistical Mapping and
-%              Functional Connectivity
+% main.tex  —  Standard Article Format (A4, 12pt)
+% Title     : fMRI Brain Data Analysis using SPM and MATLAB
 % Author    : Fahim Ur Rehman Shah (EE2629)
 % Course    : CSE532 — Signal and Image Processing (MS Level)
 % Supervisor: Dr. Adnan Shah, FCSE, GIKI
 % Date      : May 2026
-% Compile   : pdflatex main.tex  (run twice for cross-references)
+% Compile   : pdflatex main.tex  (run twice)
 %             bibtex main
 %             pdflatex main.tex  (twice more)
 % ==========================================================================
 
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
+\documentclass[12pt,a4paper]{article}
 
-\usepackage{cite}
+% --- Page layout ---
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+
+% --- Essential packages ---
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
-\usepackage{textcomp}
-\usepackage{xcolor}
+\usepackage{float}          % [H] placement — figures stay exactly where written
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{textcomp}
 \usepackage[hidelinks]{hyperref}
 \usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+
+% --- Caption styling ---
+\usepackage[font=small, labelfont=bf, margin=0.5cm]{caption}
+
+% --- Header / footer with page numbers ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small fMRI Analysis using SPM and MATLAB}
+\fancyhead[R]{\small Fahim Ur Rehman Shah (EE2629)}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% --- Section title formatting ---
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+
+% --- Line spacing ---
+\usepackage{setspace}
+\setstretch{1.15}
 
 \graphicspath{{figures/}}
-
-% Page numbers on every page (IEEEtran default hides them)
-\pagestyle{plain}
 
 % ==========================================================================
 \begin{document}
 
-\title{fMRI Brain Data Analysis using SPM and MATLAB:\\
-       Preprocessing, GLM, Statistical Mapping\\
-       and Functional Connectivity}
+% --------------------------------------------------------------------------
+% Title block
+% --------------------------------------------------------------------------
+\begin{center}
+  {\LARGE\bfseries fMRI Brain Data Analysis using SPM and MATLAB:\\[0.3em]
+  Preprocessing, GLM, Statistical Mapping and Functional Connectivity}
 
-\author{
-  \IEEEauthorblockN{Fahim Ur Rehman Shah}
-  \IEEEauthorblockA{
-    \textit{Faculty of Computer Science \& Engineering (FCSE)}\\
-    \textit{GIK Institute of Engineering Sciences \& Technology}\\
-    Registration No.: EE2629\\
-    gee2629@giki.edu.pk
-  }
-  \and
-  \IEEEauthorblockN{Dr.\ Adnan Shah \textit{(Supervisor)}}
-  \IEEEauthorblockA{
-    \textit{Assistant Professor, FCSE}\\
-    \textit{GIK Institute of Engineering Sciences \& Technology}\\
-    CSE532 — Signal and Image Processing
-  }
-}
+  \vspace{1em}
 
-\maketitle
+  {\large Fahim Ur Rehman Shah}\\[0.2em]
+  \textit{Faculty of Computer Science \& Engineering (FCSE)}\\
+  \textit{GIK Institute of Engineering Sciences \& Technology}\\
+  Registration No.: EE2629 \quad|\quad \texttt{gee2629@giki.edu.pk}
 
-% ==========================================================================
+  \vspace{0.5em}
+
+  {\large Supervisor: Dr.\ Adnan Shah}\\[0.2em]
+  \textit{Assistant Professor, FCSE, GIK Institute}\\
+  CSE532 --- Signal and Image Processing
+
+  \vspace{0.5em}
+  \textit{May 2026}
+\end{center}
+
+\vspace{0.5em}
+\hrule
+\vspace{1em}
+
+% --------------------------------------------------------------------------
+% Abstract + Keywords
+% --------------------------------------------------------------------------
 \begin{abstract}
 \input{sections/abstract}
 \end{abstract}
 
-\begin{IEEEkeywords}
-fMRI, SPM25, preprocessing, general linear model, BOLD signal,
-functional connectivity, motor cortex, ventral visual stream,
+\noindent\textbf{Keywords:} fMRI, SPM25, preprocessing, general linear model,
+BOLD signal, functional connectivity, motor cortex, ventral visual stream,
 OpenNeuro, MATLAB
-\end{IEEEkeywords}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
 
 % ==========================================================================
 \section{Introduction}
@@ -85,17 +115,16 @@ repetitive finger tapping, foot tapping, and lip movements, each
 interleaved with rest. Subject \texttt{sub-01}, session
 \texttt{ses-test}, run~1 was analysed (184 volumes). The T1
 anatomical image from the same session was used for normalisation.
-Scan parameters read from the NIfTI header were used directly in
-the preprocessing scripts.
+Scan parameters were read directly from the NIfTI header.
 
 \subsection{Dataset 2 — ds000105 (Visual Task)}
 The \textit{visual object recognition} dataset~\cite{Haxby2001}
 (ds000105) presents eight visual categories — faces, houses, cats,
 bottles, scissors, shoes, chairs, and scrambled images — in a
 blocked design. Subject \texttt{sub-1}, run~1 was analysed (121
-volumes). This dataset is widely used in the literature as a benchmark
-for multivariate pattern analysis; running a standard GLM on it
-provides an immediate sanity check against published results.
+volumes). This dataset is widely used as a benchmark for multivariate
+pattern analysis; running a standard GLM on it provides an immediate
+sanity check against published results.
 
 % ==========================================================================
 \section{Methods}
@@ -106,8 +135,6 @@ provides an immediate sanity check against published results.
 \section{Results}
 \label{sec:results}
 \input{sections/results}
-
-\clearpage  % flush all Results figures before Discussion text begins
 
 % ==========================================================================
 \section{Discussion}
@@ -120,52 +147,37 @@ pipeline is working correctly.
 \textbf{Motion quality.}
 Mean framewise displacement was below 0.2\,mm in both scans, putting
 them in the ``low motion'' category under the criteria of Power
-et~al.~\cite{Power2012}. This matters because even small amounts of
-systematic motion — particularly correlated with the task — can
-produce spurious activations that mimic genuine BOLD responses. The
-clean motion profiles here make it unlikely that the activation maps
-are motion artefacts.
+et~al.~\cite{Power2012}. Clean motion profiles make it unlikely that
+the activation maps are motion artefacts.
 
 \textbf{Motor cortex somatotopy.}
 The three finger/foot/lips contrasts in Dataset~1 produced activation
 peaks that followed the expected somatotopic organisation of primary
 motor cortex from medial (foot) to lateral (face/lips)
 territory~\cite{Lotze2000}. The omnibus AllMotor map covered the
-entire motor strip plus the cerebellum and thalamus — the core nodes
-of the voluntary motor system. These results validate both the
-preprocessing (correct spatial normalisation) and the GLM specification
-(correct event timing).
+entire motor strip plus the cerebellum and thalamus.
 
 \textbf{Visual category selectivity.}
 The face-selective fusiform cluster in Dataset~2 (Fig.~\ref{fig:ds2:tmap:face})
 matches the reported location of the fusiform face area in the
-original Haxby et~al.\ paper~\cite{Haxby2001}. Replicating a
-published finding using an independent implementation of the same
-pipeline is a strong form of validation. The other category contrasts
-produced distributed activation in the lateral occipito-temporal
-cortex, consistent with object-selective processing in the ventral
-stream.
+original Haxby et~al.\ paper~\cite{Haxby2001}. The other category
+contrasts produced distributed activation in the lateral
+occipito-temporal cortex, consistent with object-selective processing
+in the ventral stream.
 
 \textbf{Functional connectivity.}
 Both connectivity maps showed spatially coherent networks. The motor
-seed produced bilateral M1 and SMA connectivity (the sensorimotor
-network), and the visual seed produced occipito-temporal connectivity
-(the visual network). The cross-dataset comparison in
-Fig.~\ref{fig:comparison:connectivity} shows these two networks are
-spatially non-overlapping, which is what we would expect from
-independent functional systems. The negative correlations with
-default-mode regions in both maps are also expected: task-positive
-networks tend to be anti-correlated with the default mode
-network~\cite{Biswal1995}.
+seed produced bilateral M1 and SMA connectivity, and the visual seed
+produced occipito-temporal connectivity. The cross-dataset comparison
+(Fig.~\ref{fig:comparison:connectivity}) confirms these networks are
+spatially non-overlapping. Negative correlations with default-mode
+regions are also expected~\cite{Biswal1995}.
 
 \textbf{Limitations.}
-This analysis covers a single subject from each dataset, so the
-results cannot be generalised beyond these two individuals. The
-connectivity analysis was performed on the full task run (not a
-separate resting-state scan), so the correlation structure partially
-reflects task-related coactivation rather than purely intrinsic
-connectivity. Future work should include group-level analyses and
-separate resting-state acquisitions.
+This analysis covers a single subject per dataset. The connectivity
+analysis used the task run rather than a resting-state scan, so
+correlations partly reflect task-related coactivation. Future work
+should include group-level analyses and separate resting-state data.
 
 % ==========================================================================
 \section{Conclusion}
@@ -173,7 +185,7 @@ separate resting-state acquisitions.
 \input{sections/conclusion}
 
 % ==========================================================================
-\section*{Acknowledgement}
+\section*{Acknowledgements}
 The author thanks Dr.\ Adnan Shah (FCSE, GIKI) for supervision and
 guidance throughout this project. The OpenNeuro platform and the
 contributors of datasets ds000114 and ds000105 are gratefully
